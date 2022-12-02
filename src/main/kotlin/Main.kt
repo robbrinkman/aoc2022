@@ -15,7 +15,7 @@ class AOC {
         var calorieCount =0;
 
         // Turn into nice code
-        readInputFile("/01/input.txt").forEachLine { line ->
+        readInputFile("/01/calories_example.txt").forEachLine { line ->
             if (line.trim() == "") {
                 elfs.add(Elf(calorieCount))
                 calorieCount = 0;
@@ -23,6 +23,8 @@ class AOC {
                 calorieCount+= line.toInt()
             }
         }
+
+        println(readInputFile("/01/input.txt").readLines().groupingBy { it == "" })
 
         println("Most calories: ${findElfWithMostCalories(elfs)?.calories}")
         println("Top three on calories: ${findTopThreeElves(elfs)}")
