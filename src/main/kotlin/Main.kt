@@ -86,6 +86,18 @@ class AOC {
             .sumOf { priority(it) }
 
         println("Priority sum: $result")
+
+        val result2 = readInputFile("/03/input.txt")
+            .readLines()
+            .chunked(3)
+            .flatMap {
+                // Determine which items are in each bag
+                it[0].toList()
+                    .intersect(it[1].toList().toSet()).toList()
+                    .intersect(it[2].toList().toSet())
+            }.sumOf { priority(it) }
+
+        println("Priority sum of badges: $result2")
     }
 
     private fun priority(char : Char) : Int {
