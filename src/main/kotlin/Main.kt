@@ -1,40 +1,32 @@
 import java.io.File
 
 fun main(args: Array<String>) {
-    //AOC().exercise01()
-    //AOC().exercise02()
-    AOC().exercise03()
+    AOC().exercise01()
+//    AOC().exercise02()
+//    AOC().exercise03()
+//    AOC().exercise04()
 }
 
 class AOC {
 
-    data class Elf(val calories: Int)
+
 
     fun exercise01() {
 
-        val elfs : MutableList<Elf> = mutableListOf()
-        var calorieCount =0;
-
-        // Turn into nice code
-        readInputFile("/01/example.txt").forEachLine { line ->
-            if (line.trim() == "") {
-                elfs.add(Elf(calorieCount))
-                calorieCount = 0;
-            } else {
-                calorieCount+= line.toInt()
+        val result = readInputFile("/01/example.txt")
+            .readLines()
+            .joinToString(",").split(",,")
+            .map {
+                it.split(",").sumOf { score -> score.toInt() }
             }
-        }
 
-        println("Most calories: ${findElfWithMostCalories(elfs)?.calories}")
-        println("Top three on calories: ${findTopThreeElves(elfs)}")
-        println("Top three calories total: ${findTopThreeElves(elfs).sumOf { it.calories }}")
-
+        println("Most calories: ${result.maxOrNull()}")
+        println("Top three calories total: ${result.sortedBy { it }.reversed().subList(0,3).sum()}")
 
     }
 
-    private fun findElfWithMostCalories(elfs : List<Elf>) = elfs.maxByOrNull { it.calories }
 
-    private fun findTopThreeElves(elfs : List<Elf>) = elfs.sortedBy { it.calories }.reversed().subList(0,3)
+    private fun findTopThreeElves(elfs : List<Int>) = elfs.sortedBy { it }.reversed().subList(0,3)
 
 
     fun exercise02() {
@@ -106,6 +98,38 @@ class AOC {
             else -> char.code - 38
         }
     }
+
+
+    fun exercise04() {
+        val result = readInputFile("/04/example.txt")
+            .readLines()
+            .map {
+                parseCleanupAssignment(it)
+            }.count {
+                it.first.first <= it.second.first && it.first.last >= it.second.last
+                        || it.second.first <= it.first.first && it.second.last >= it.first.last
+            }
+
+        println("Number of pairs with overlapping work: $result")
+
+        val result2 = readInputFile("/04/input.txt")
+            .readLines().map {
+                parseCleanupAssignment(it)
+            }.count {
+                it.first.intersect(it.second).isNotEmpty()
+            }
+
+        println("Number of assignments that overlap: $result2")
+    }
+
+    private fun parseCleanupAssignment(line : String): Pair<IntRange, IntRange> {
+        val match = "^(\\d+)-(\\d+),(\\d+)-(\\d+)$".toRegex().find(line)
+        val elf1Range = match!!.groups[1]!!.value.toInt()..match.groups[2]!!.value.toInt()
+        val elf2Range = match.groups[3]!!.value.toInt()..match.groups[4]!!.value.toInt()
+        return Pair(elf1Range, elf2Range)
+    }
+
+
 
     private fun readInputFile(inputFile: String) : File {
         return File(javaClass::class.java.getResource(inputFile).path)
