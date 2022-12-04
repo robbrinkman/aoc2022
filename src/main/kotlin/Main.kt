@@ -4,12 +4,11 @@ fun main() {
 //    AOC().exercise01()
 //    AOC().exercise02()
 //    AOC().exercise03()
-    AOC().exercise04()
+//    AOC().exercise04()
+    AOC().exercise05()
 }
 
 class AOC {
-
-
 
     fun exercise01() {
 
@@ -25,9 +24,7 @@ class AOC {
 
     }
 
-
     private fun findTopThreeElves(elfs : List<Int>) = elfs.sortedBy { it }.reversed().subList(0,3)
-
 
     fun exercise02() {
         val score = readInputFile("/02/example.txt").readLines().sumOf { line: String ->
@@ -36,7 +33,6 @@ class AOC {
             myHand + result
         }
         println("Total score: $score")
-
 
         val score2 = readInputFile("/02/example.txt").readLines().sumOf { line: String ->
             val (opponentHand, expectedResult) = readHands(line)
@@ -51,7 +47,6 @@ class AOC {
             val result = this.play(opponentHand, myHand)
             myHand + result
         }
-
         println("Total score2: $score2")
     }
 
@@ -99,7 +94,6 @@ class AOC {
         }
     }
 
-
     fun exercise04() {
         val result = readInputFile("/04/example.txt")
             .readLines()
@@ -129,10 +123,17 @@ class AOC {
         return Pair(elf1Range, elf2Range)
     }
 
-
-
     private fun readInputFile(inputFile: String) : File {
         return File(javaClass::class.java.getResource(inputFile).path)
+    }
+
+    fun exercise05() {
+        val result = readInputFile("/05/example.txt")
+            .readLines()
+
+
+        println("$result")
+
     }
 
 }
