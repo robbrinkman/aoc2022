@@ -1,10 +1,10 @@
 import java.io.File
 
-fun main(args: Array<String>) {
-    AOC().exercise01()
+fun main() {
+//    AOC().exercise01()
 //    AOC().exercise02()
 //    AOC().exercise03()
-//    AOC().exercise04()
+    AOC().exercise04()
 }
 
 class AOC {
