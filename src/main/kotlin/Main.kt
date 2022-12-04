@@ -78,13 +78,26 @@ class AOC {
         else 0
     }
 
+    fun exercise03() {
+        val result = readInputFile("/03/input.txt").readLines()
+            .map { it.toList() }
+            .map { it.chunked(it.size / 2) }
+            .flatMap { it[0].intersect(it[1].toSet()) }
+            .sumOf { priority(it) }
+
+        println("Priority sum: $result")
+    }
+
+    private fun priority(char : Char) : Int {
+        return when(char) {
+            in 'a'..'z' -> char.code - 96
+            else -> char.code - 38
+        }
+    }
 
     private fun readInputFile(inputFile: String) : File {
         return File(javaClass::class.java.getResource(inputFile).path)
     }
 
-    fun exercise03() {
-
-    }
 }
 
