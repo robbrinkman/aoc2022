@@ -128,12 +128,112 @@ class AOC {
     }
 
     fun exercise05() {
-        val result = readInputFile("/05/example.txt")
+
+        val crateSize = 9;
+
+        val crates : MutableList<StackWithList> = mutableListOf()
+        repeat(crateSize) { crates.add(StackWithList()) }
+
+        readInputFile("/05/input.txt")
             .readLines()
+            .filter { it.contains("[") }
+            .reversed()
+            .forEach {
+                println(it)
+                (crates.indices).forEach { i ->
+                    val pos = (i*4)+1
+                    if (pos < it.length) {
+                        val char = it[pos]
+                        if (char.toChar().isLetter()) {
+                            crates[i].push(char)
+                        }
+                    }
+                }
+            }
 
+       val instructions = readInputFile("/05/input.txt")
+            .readLines()
+            .filter { it.contains("move") }.map {
+               "^move (\\d+) from (\\d+) to (\\d+)$".toRegex().find(it)
+           }.map {
+               Move(it!!.groups[1]!!.value.toInt(), it!!.groups[2]!!.value.toInt(), it!!.groups[3]!!.value.toInt())
+           }
 
-        println("$result")
+//        // 9000
+//        instructions.forEach { instruction ->
+//            repeat((0 until instruction.count).count()) {
+//                if (crates[instruction.from - 1].peek() != null) {
+//                    val item = crates[instruction.from - 1].pop() as Char
+//                    crates[instruction.to - 1].push(item)
+//                }
+//            }
+//        }
+//
+//        crates.forEach {
+//            crate -> println(crate.peek())
+//        }
+//
+//        val result = crates.map { it.peek()}.joinToString("")
+//        println("9000: $result")
 
+        // 9001
+        instructions.forEach { instruction ->
+
+            /*
+            repeat(instruction.count) {
+                if (crates[instruction.from - 1].peek() != null) {
+                    val item = crates[instruction.from - 1].pop() as Char
+                    crates[instruction.to - 1].push(item)
+                }
+            }*/
+
+            if (instruction.count == 1) {
+                println("Single")
+                crates[instruction.to - 1].push(crates[instruction.from - 1].pop() as Char)
+            } else if (instruction.count > 1) {
+                val items : MutableList<Char> = mutableListOf()
+                repeat(instruction.count) { _ ->
+                    items.add(crates[instruction.from - 1].pop() as Char)
+                }
+                items.reversed().forEach { crates[instruction.to - 1].push(it) }
+            } else {
+                println("Should not hapen")
+            }
+
+        }
+
+        crates.forEach {
+                crate -> println(crate.peek())
+        }
+
+        val result = crates.map { it.peek()}.joinToString("")
+        println("9001: $result")
+
+    }
+
+    data class Move(val count: Int, val from: Int, val to: Int)
+
+    class StackWithList{
+        val elements: MutableList<Any> = mutableListOf()
+
+        fun isEmpty() = elements.isEmpty()
+
+        fun size() = elements.size
+
+        fun push(item: Any) {
+            elements.add(item)
+        }
+
+        fun pop() : Any? {
+            val item = elements.lastOrNull()
+            if (!isEmpty()){
+                elements.removeAt(elements.size -1)
+            }
+            return item
+        }
+        fun peek() : Any? = elements.lastOrNull()
+
+        override fun toString(): String = elements.toString()
     }
 
 }
