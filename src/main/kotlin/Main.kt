@@ -5,7 +5,8 @@ fun main() {
 //    AOC().exercise02()
 //    AOC().exercise03()
 //    AOC().exercise04()
-    AOC().exercise05()
+//    AOC().exercise05()
+    AOC().exercise06()
 }
 
 class AOC {
@@ -23,8 +24,6 @@ class AOC {
         println("Top three calories total: ${result.sortedBy { it }.reversed().subList(0,3).sum()}")
 
     }
-
-    private fun findTopThreeElves(elfs : List<Int>) = elfs.sortedBy { it }.reversed().subList(0,3)
 
     fun exercise02() {
         val score = readInputFile("/02/example.txt").readLines().sumOf { line: String ->
@@ -129,7 +128,7 @@ class AOC {
 
     fun exercise05() {
 
-        val crateSize = 9;
+        val crateSize = 9
 
         val crates : MutableList<StackWithList> = mutableListOf()
         repeat(crateSize) { crates.add(StackWithList()) }
@@ -144,7 +143,7 @@ class AOC {
                     val pos = (i*4)+1
                     if (pos < it.length) {
                         val char = it[pos]
-                        if (char.toChar().isLetter()) {
+                        if (char.isLetter()) {
                             crates[i].push(char)
                         }
                     }
@@ -156,7 +155,7 @@ class AOC {
             .filter { it.contains("move") }.map {
                "^move (\\d+) from (\\d+) to (\\d+)$".toRegex().find(it)
            }.map {
-               Move(it!!.groups[1]!!.value.toInt(), it!!.groups[2]!!.value.toInt(), it!!.groups[3]!!.value.toInt())
+               Move(it!!.groups[1]!!.value.toInt(), it.groups[2]!!.value.toInt(), it.groups[3]!!.value.toInt())
            }
 
 //        // 9000
@@ -197,7 +196,7 @@ class AOC {
                 }
                 items.reversed().forEach { crates[instruction.to - 1].push(it) }
             } else {
-                println("Should not hapen")
+                println("Should not happen")
             }
 
         }
@@ -214,9 +213,9 @@ class AOC {
     data class Move(val count: Int, val from: Int, val to: Int)
 
     class StackWithList{
-        val elements: MutableList<Any> = mutableListOf()
+        private val elements: MutableList<Any> = mutableListOf()
 
-        fun isEmpty() = elements.isEmpty()
+        private fun isEmpty() = elements.isEmpty()
 
         fun size() = elements.size
 
@@ -236,5 +235,8 @@ class AOC {
         override fun toString(): String = elements.toString()
     }
 
+    fun exercise06() {
+
+    }
 }
 
