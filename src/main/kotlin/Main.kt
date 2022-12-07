@@ -6,7 +6,8 @@ fun main() {
 //    AOC().exercise03()
 //    AOC().exercise04()
 //    AOC().exercise05()
-    AOC().exercise06()
+//    AOC().exercise06()
+    AOC().exercise07()
 }
 
 class AOC {
@@ -120,10 +121,6 @@ class AOC {
         val elf1Range = match!!.groups[1]!!.value.toInt()..match.groups[2]!!.value.toInt()
         val elf2Range = match.groups[3]!!.value.toInt()..match.groups[4]!!.value.toInt()
         return Pair(elf1Range, elf2Range)
-    }
-
-    private fun readInputFile(inputFile: String) : File {
-        return File(javaClass::class.java.getResource(inputFile).path)
     }
 
     fun exercise05() {
@@ -255,7 +252,6 @@ class AOC {
 
         println("${findMarker(input)}")
 
-
     }
 
     private fun findMarker(dataStream : String) : Int {
@@ -278,5 +274,69 @@ class AOC {
         }
         return -1
     }
+
+
+    fun exercise07() {
+
+        val rootDirectory = Directory(null,"/")
+
+        var currentDirectory = rootDirectory
+
+
+
+       val result = readInputFile("/07/example.txt").forEachLine {  line : String ->
+
+           // Handle directory change
+           if (line.startsWith("$ cd")) {
+
+                val folder =line.substring(5)
+                if (folder == "/") {
+                    currentDirectory = rootDirectory
+                } else if (folder == ".." ) {
+                    if (currentDirectory.parentDirectory != null) {
+                        currentDirectory = currentDirectory.parentDirectory!!
+                    }
+                } else {
+                    var childDirectory = currentDirectory.childDirectories.find { it.name == folder}
+                    if (childDirectory == null) {
+                        childDirectory = Directory(currentDirectory, folder)
+                        currentDirectory.childDirectories.add(childDirectory)
+                    }
+                    currentDirectory = childDirectory
+                }
+               println(line)
+               println("current: ${currentDirectory.name}")
+           } else if (line.startsWith("$ ls")) {
+               // Do Nothing
+           } else if (line.startsWith("dir")){
+               // Do Nothing for now, only register files on entry
+           } else {
+               println(line)
+               val splitResult = line.split(" ")
+               val size = splitResult[0].toInt()
+               val name = splitResult[1]
+               currentDirectory.files[name] = size
+           }
+       }
+        printDirectory(rootDirectory)
+    }
+
+    private fun printDirectory(dir: Directory) {
+        println("Directory ${dir.name}")
+        println("Files (${dir.files.size}):")
+        dir.files.forEach { println("\t${it.key} (${it.value})")}
+        println("Directories (${dir.childDirectories.size}):")
+        dir.childDirectories.forEach { printDirectory(it)}
+    }
+
+    data class Directory ( val parentDirectory : Directory?, val name : String, val files: MutableMap<String, Int> = mutableMapOf(), val childDirectories : MutableList<Directory> = mutableListOf())
+
+
+    private fun readInputFile(inputFile: String) : File {
+        return File(javaClass::class.java.getResource(inputFile).path)
+    }
+
+
+
 }
 
