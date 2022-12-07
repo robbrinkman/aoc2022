@@ -282,9 +282,7 @@ class AOC {
 
         var currentDirectory = rootDirectory
 
-
-
-       val result = readInputFile("/07/example.txt").forEachLine {  line : String ->
+       val result = readInputFile("/07/input.txt").forEachLine {  line : String ->
 
            // Handle directory change
            if (line.startsWith("$ cd")) {
@@ -318,18 +316,45 @@ class AOC {
                currentDirectory.files[name] = size
            }
        }
+
         printDirectory(rootDirectory)
+
+
+        val allDirectories : MutableList<Directory> = mutableListOf()
+        addDirectory(allDirectories, rootDirectory)
+
+
+
+//        allDirectories.sortBy { it.size() }
+//        allDirectories.reverse()
+
+
+        val sum = allDirectories.filter { it.size() <= 100000 }.sumOf { it.size() }
+        println("Sum: $sum")
     }
 
+    private fun addDirectory(allDirectories: MutableList<AOC.Directory>, directory: AOC.Directory) {
+        allDirectories.add(directory)
+        directory.childDirectories.forEach { addDirectory(allDirectories, it)}
+    }
+
+
     private fun printDirectory(dir: Directory) {
-        println("Directory ${dir.name}")
+        println("Directory ${dir.name} (${dir.size()})")
         println("Files (${dir.files.size}):")
         dir.files.forEach { println("\t${it.key} (${it.value})")}
         println("Directories (${dir.childDirectories.size}):")
         dir.childDirectories.forEach { printDirectory(it)}
     }
 
-    data class Directory ( val parentDirectory : Directory?, val name : String, val files: MutableMap<String, Int> = mutableMapOf(), val childDirectories : MutableList<Directory> = mutableListOf())
+    data class Directory ( val parentDirectory : Directory?, val name : String, val files: MutableMap<String, Int> = mutableMapOf(), val childDirectories : MutableList<Directory> = mutableListOf()) {
+        fun size() : Int = files.values.sum() + childDirectories.sumOf { it.size() }
+
+        override fun toString(): String {
+            return "${this.name} : ${this.size()}"
+        }
+
+    }
 
 
     private fun readInputFile(inputFile: String) : File {
