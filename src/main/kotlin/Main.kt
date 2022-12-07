@@ -340,7 +340,6 @@ class AOC {
         directory.childDirectories.forEach { addDirectory(allDirectories, it) }
     }
 
-
     private fun printDirectory(dir: Directory) {
         println("Directory ${dir.name} (${dir.size()})")
         println("Files (${dir.files.size}):")
