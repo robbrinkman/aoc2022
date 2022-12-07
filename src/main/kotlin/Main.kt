@@ -282,7 +282,7 @@ class AOC {
 
         var currentDirectory = rootDirectory
 
-       val result = readInputFile("/07/input.txt").forEachLine {  line : String ->
+      readInputFile("/07/input.txt").forEachLine {  line : String ->
 
            // Handle directory change
            if (line.startsWith("$ cd")) {
@@ -323,14 +323,30 @@ class AOC {
         val allDirectories : MutableList<Directory> = mutableListOf()
         addDirectory(allDirectories, rootDirectory)
 
+        val result1 = allDirectories.filter { it.size() <= 100000 }.sumOf { it.size() }
+        println("Sum: $result1")
+
+        // Part 2
+        val totalSize = 70000000
+        val unusedSpace = totalSize - rootDirectory.size()
+        val minimalSpaceNeeded = 30000000 - unusedSpace
 
 
-//        allDirectories.sortBy { it.size() }
-//        allDirectories.reverse()
+        println("Unused space: $unusedSpace, space needed: $minimalSpaceNeeded")
+//
+//        allDirectories.sortedBy { it.size() }
+//
+//
+//        allDirectories.sortedBy { it.size() }.forEach { println("${it.size()} ${it.name}")}
+//
+//
+       val result2 = allDirectories
+            .filter { it.size() >= minimalSpaceNeeded }.minByOrNull { it.size() }!!
 
 
-        val sum = allDirectories.filter { it.size() <= 100000 }.sumOf { it.size() }
-        println("Sum: $sum")
+        println("Smallest directory to remove ${result2.name} -> ${result2.size()}");
+//
+
     }
 
     private fun addDirectory(allDirectories: MutableList<AOC.Directory>, directory: AOC.Directory) {
