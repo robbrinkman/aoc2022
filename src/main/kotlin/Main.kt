@@ -1,4 +1,7 @@
+import com.sun.org.apache.xpath.internal.operations.Bool
 import java.io.File
+import java.lang.IllegalStateException
+import kotlin.math.absoluteValue
 
 fun main() {
 //    AOC().exercise01()
@@ -8,7 +11,9 @@ fun main() {
 //    AOC().exercise05()
 //    AOC().exercise06()
 //    AOC().exercise07()
-    AOC().exercise08()
+//    AOC().exercise08()
+    AOC().exercise09()
+
 }
 
 class AOC {
@@ -364,8 +369,162 @@ class AOC {
 
     fun exercise08() {
 
-        readInputFile("/08/example.txt")
+        val grid = Grid(readInputFile("/08/example.txt").readLines()
+            .map { x -> x.toList().map { y -> y.digitToInt() } })
+
+        printGrid(grid)
+
+        val result = grid.findVisibleTrees()
+        println(result.size)
+
+
     }
+    data class Grid(val data : List<List<Int>>) {
+        fun row(x: Int): List<Int> = data[x]
+
+        fun col(y: Int): List<Int> = data.map { it[y] }
+
+        fun size() : Int {
+            assert(data.size == data[0].size)
+            return data.size
+        }
+
+        fun isVisible(x : Int, y: Int) : Boolean {
+            // Is Border////;//;//////////////////////////////////////.
+            return isVisibleFromTop(x, y) ||
+                    isVisibleFromLeft(x, y) ||
+                    isVisibleFromBottom(x, y) ||
+                    isVisibleFromRight(x,y)
+        }
+
+        fun isVisibleFromTop(x: Int, y: Int) : Boolean {
+            return (0 until x).map { data[it][y]}.count { it > data[x][y]} == 0
+        }
+
+        fun isVisibleFromLeft(x: Int, y: Int) : Boolean {
+            return (0 until y).map { data[x][it]}.count { it > data[x][y]} == 0
+        }
+
+        fun isVisibleFromBottom(x: Int, y: Int) : Boolean {
+            return (x until size()).map { data[it][y]}.count { it > data[x][y]} == 0
+        }
+
+        fun isVisibleFromRight(x: Int, y: Int) : Boolean {
+            return (y until size()).map { data[x][it]}.count { it > data[x][y]} == 0
+        }
+
+        fun findVisibleTrees(): Set<Pair<Int, Int>> {
+            val result : MutableSet<Pair<Int, Int>> = mutableSetOf()
+
+            val r = (0 until size()).flatMap { x ->
+                (0 until size()).map { y ->
+                    Pair(x,y)
+                }.filter { isVisible(it.first, it.second) }
+            }
+
+            result.addAll(r)
+            return result
+        }
+
+
+
+
+        private fun findVisibleTreesInLine(trees: List<Int>) : List<Int> {
+            var highest: Int = -1
+            val result : MutableList<Int> = mutableListOf()
+            trees.forEachIndexed { index, tree -> if (tree > highest) {
+                result.add(index)
+                highest = tree
+            }
+            }
+            return result
+        }
+
+    }
+
+
+
+    private fun printGrid(grid : Grid) {
+        grid.data.forEach { row ->
+            row.forEach { col ->
+                print("$col ")
+            }
+            println()
+        }
+    }
+
+    fun exercise09() {
+
+
+
+        val moves = readInputFile("/09/input.txt")
+            .readLines()
+            .map { it.split(" ") }
+            .map { Instruction(it[0][0], it[1].toInt())}
+
+        var headPosition = Point(0,0)
+        var tailPosition = Point(0,0)
+
+        var tailPositions : MutableSet<Point> = mutableSetOf()
+
+        moves.forEach{ move ->
+            (0 until move.steps).forEach { step ->
+                headPosition = when(move.direction) {
+                    'U' -> headPosition.up()
+                    'D' -> headPosition.down()
+                    'R' -> headPosition.right()
+                    'L' -> headPosition.left()
+                    else -> throw IllegalStateException("Unknown move")
+                }
+
+                tailPosition = tailPosition.follow(headPosition)
+                tailPositions.add(tailPosition)
+            }
+
+        }
+        println("Total positions touched: ${tailPositions.size}")
+    }
+
+    data class Point(val x : Int, val y : Int) {
+        fun up(): Point = Point(this.x, this.y+1)
+        fun down(): Point = Point(this.x, this.y-1)
+        fun left(): Point = Point(this.x-1, this.y)
+        fun right(): Point = Point(this.x+1, this.y)
+        fun follow(headPosition: Point) : Point {
+
+            // follow right
+            if (this.x-headPosition.x < -1 && this.y == headPosition.y) {
+                return this.right()
+            }
+
+            // follow left
+            if (this.x-headPosition.x > 1 && this.y == headPosition.y) {
+                return this.left()
+            }
+
+            // follow up
+            if (this.y-headPosition.y < -1 && this.x == headPosition.x) {
+                return this.up()
+            }
+
+            // follow down
+            if (this.y-headPosition.y > 1 && this.x == headPosition.x) {
+                return this.down()
+            }
+
+            if (((this.y-headPosition.y).absoluteValue + (this.x-headPosition.x).absoluteValue) > 2) {
+                val y = if (this.y < headPosition.y) this.y+1 else this.y - 1
+                val x = if (this.x < headPosition.x) this.x+1 else this.x - 1
+                return Point(x,y)
+            }
+            return this
+        }
+
+    }
+
+
+
+    data class Instruction(val direction:  Char, val steps: Int) 
 
 
     private fun readInputFile(inputFile: String): File {
