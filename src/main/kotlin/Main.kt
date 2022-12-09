@@ -10,8 +10,8 @@ fun main() {
 //    AOC().exercise05()
 //    AOC().exercise06()
 //    AOC().exercise07()
-//    AOC().exercise08()
-    AOC().exercise09()
+    AOC().exercise08()
+//    AOC().exercise09()
 
 }
 
@@ -368,83 +368,59 @@ class AOC {
 
     fun exercise08() {
 
-        val grid = Grid(readInputFile("/08/example.txt").readLines()
+        val forrest = Forrest(readInputFile("/08/input.txt").readLines()
             .map { x -> x.toList().map { y -> y.digitToInt() } })
 
-        printGrid(grid)
+        printGrid(forrest)
 
-        val result = grid.findVisibleTrees()
+        val result = forrest.findVisibleTrees()
         println(result.size)
 
 
     }
-    data class Grid(val data : List<List<Int>>) {
-        fun row(x: Int): List<Int> = data[x]
+    data class Forrest(val data : List<List<Int>>) {
+        private fun row(x: Int): List<Int> = data[x]
 
-        fun col(y: Int): List<Int> = data.map { it[y] }
+        private fun col(y: Int): List<Int> = data.map { it[y] }
 
-        fun size() : Int {
+        private fun size() : Int {
             assert(data.size == data[0].size)
             return data.size
         }
 
-        fun isVisible(x : Int, y: Int) : Boolean {
-            // Is Border////;//;//////////////////////////////////////.
-            return isVisibleFromTop(x, y) ||
-                    isVisibleFromLeft(x, y) ||
-                    isVisibleFromBottom(x, y) ||
-                    isVisibleFromRight(x,y)
-        }
-
-        fun isVisibleFromTop(x: Int, y: Int) : Boolean {
-            return (0 until x).map { data[it][y]}.count { it > data[x][y]} == 0
-        }
-
-        fun isVisibleFromLeft(x: Int, y: Int) : Boolean {
-            return (0 until y).map { data[x][it]}.count { it > data[x][y]} == 0
-        }
-
-        fun isVisibleFromBottom(x: Int, y: Int) : Boolean {
-            return (x until size()).map { data[it][y]}.count { it > data[x][y]} == 0
-        }
-
-        fun isVisibleFromRight(x: Int, y: Int) : Boolean {
-            return (y until size()).map { data[x][it]}.count { it > data[x][y]} == 0
-        }
 
         fun findVisibleTrees(): Set<Pair<Int, Int>> {
-            val result : MutableSet<Pair<Int, Int>> = mutableSetOf()
-
-            val r = (0 until size()).flatMap { x ->
+            return (0 until size()).flatMap { x ->
                 (0 until size()).map { y ->
                     Pair(x,y)
                 }.filter { isVisible(it.first, it.second) }
-            }
-
-            result.addAll(r)
-            return result
+            }.toSet()
         }
 
+        private fun isVisible(x : Int, y: Int) : Boolean {
 
+            val treeSize = data[x][y]
 
-
-        private fun findVisibleTreesInLine(trees: List<Int>) : List<Int> {
-            var highest: Int = -1
-            val result : MutableList<Int> = mutableListOf()
-            trees.forEachIndexed { index, tree -> if (tree > highest) {
-                result.add(index)
-                highest = tree
+            return if (isBorder(x, y)) {
+                true
+            } else {
+                isVisible(treeSize, row(x).subList(0, y)) ||
+                isVisible(treeSize, row(x).subList(y+1, size())) ||
+                isVisible(treeSize, col(y).subList(0, x)) ||
+                isVisible(treeSize, col(y).subList(x+1, size()))
             }
-            }
-            return result
         }
+
+        private fun isVisible(treeSize : Int, trees: List<Int>) = trees.maxOrNull()!! < treeSize
+
+        private fun isBorder(x: Int, y: Int) = (x == 0 || x == data.size - 1 || y == 0 || y == data.size - 1)
 
     }
 
 
 
-    private fun printGrid(grid : Grid) {
-        grid.data.forEach { row ->
+    private fun printGrid(forrest : Forrest) {
+        forrest.data.forEach { row ->
             row.forEach { col ->
                 print("$col ")
             }
