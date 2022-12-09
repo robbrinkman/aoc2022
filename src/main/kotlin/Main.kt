@@ -374,9 +374,10 @@ class AOC {
         printGrid(forrest)
 
         val result = forrest.findVisibleTrees()
-        println(result.size)
+        println("Visible trees: ${result.size}")
 
-
+        val result2 = forrest.maxScenicScore()
+        println("Max scenic score : $result2")
     }
     data class Forrest(val data : List<List<Int>>) {
         private fun row(x: Int): List<Int> = data[x]
@@ -409,6 +410,46 @@ class AOC {
                 isVisible(treeSize, col(y).subList(0, x)) ||
                 isVisible(treeSize, col(y).subList(x+1, size()))
             }
+        }
+
+        fun maxScenicScore() : Int {
+            return (0 until size()).flatMap { x ->
+                (0 until size()).map { y ->
+                    scenicScore(x,y)
+                }
+            }.maxOrNull()!!
+        }
+
+        private fun scenicScore(x : Int, y: Int) : Int {
+            val treeSize =data[x][y]
+
+            val treesUp = col(y).subList(0, x).reversed()
+//            println("Up $treesUp ${scenicScore(treeSize, treesUp)}")
+
+            val treesLeft = row(x).subList(0, y).reversed()
+//            println("Left $treesLeft ${scenicScore(treeSize, treesLeft)}")
+
+            val treesRight = row(x).subList(y+1, size())
+//            println("Right $treesRight ${scenicScore(treeSize, treesRight)}")
+
+            val treesDown = col(y).subList(x+1, size())
+//            println("Down $treesDown ${scenicScore(treeSize, treesDown)}")
+
+            return scenicScore(treeSize, treesUp) * scenicScore(treeSize, treesLeft) *scenicScore(treeSize, treesRight) *  scenicScore(treeSize, treesDown)
+        }
+
+
+        private fun scenicScore(treeSize: Int, trees : List<Int>) : Int {
+            var viewableTreeCount : Int = 0
+            trees.forEach { tree ->
+                if (tree < treeSize) {
+                    viewableTreeCount++
+                } else if (tree >= treeSize) {
+                    viewableTreeCount++
+                    return viewableTreeCount;
+                }
+            }
+            return viewableTreeCount
         }
 
         private fun isVisible(treeSize : Int, trees: List<Int>) = trees.maxOrNull()!! < treeSize
