@@ -461,31 +461,24 @@ class AOC {
             .map { it.split(" ") }
             .map { Instruction(it[0][0], it[1].toInt())}
 
-        var tailPositions : MutableSet<Knot> = mutableSetOf()
-
 
         val rope = Rope(2)
-        moves.forEach{ move ->
-            (0 until move.steps).forEach { _ ->
-                rope.move(move.direction)
-                tailPositions.add(rope.tail())
-            }
-
-        }
-        println("Total positions touched for rope size ${rope.size}: ${tailPositions.size}")
-
-
-        var tailPositions2 : MutableSet<Knot> = mutableSetOf()
+        val tailPositions = countTailPositions(rope, moves)
+        println("Total positions touched for rope size ${rope.size}: ${tailPositions}")
 
         val rope2 = Rope(10)
-        moves.forEach{ move ->
-            (0 until move.steps).forEach { _ ->
-                rope2.move(move.direction)
-                tailPositions2.add(rope2.tail())
-            }
+        val tailPositions2 = countTailPositions(rope2, moves)
 
-        }
-        println("Total positions touched for rope size ${rope2.size}: ${tailPositions2.size}")
+        println("Total positions touched for rope size ${rope2.size}: ${tailPositions2}")
+    }
+
+    private fun countTailPositions(rope : Rope, moves : List<Instruction>) : Int {
+        return moves.flatMap { move ->
+            (0 until move.steps).map { _ ->
+                rope.move(move.direction)
+                rope.tail()
+            }
+        }.distinct().size
     }
 
     data class Rope(val size : Int) {
