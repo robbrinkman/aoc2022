@@ -1,4 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.Bool
 import java.io.File
 import java.lang.IllegalStateException
 import kotlin.math.absoluteValue
@@ -462,35 +461,60 @@ class AOC {
             .map { it.split(" ") }
             .map { Instruction(it[0][0], it[1].toInt())}
 
-        var headPosition = Point(0,0)
-        var tailPosition = Point(0,0)
+        var tailPositions : MutableSet<Knot> = mutableSetOf()
 
-        var tailPositions : MutableSet<Point> = mutableSetOf()
 
+        val rope = Rope(2)
         moves.forEach{ move ->
-            (0 until move.steps).forEach { step ->
-                headPosition = when(move.direction) {
-                    'U' -> headPosition.up()
-                    'D' -> headPosition.down()
-                    'R' -> headPosition.right()
-                    'L' -> headPosition.left()
-                    else -> throw IllegalStateException("Unknown move")
-                }
-
-                tailPosition = tailPosition.follow(headPosition)
-                tailPositions.add(tailPosition)
+            (0 until move.steps).forEach { _ ->
+                rope.move(move.direction)
+                tailPositions.add(rope.tail())
             }
 
         }
-        println("Total positions touched: ${tailPositions.size}")
+        println("Total positions touched for rope size ${rope.size}: ${tailPositions.size}")
+
+
+        var tailPositions2 : MutableSet<Knot> = mutableSetOf()
+
+        val rope2 = Rope(10)
+        moves.forEach{ move ->
+            (0 until move.steps).forEach { _ ->
+                rope2.move(move.direction)
+                tailPositions2.add(rope2.tail())
+            }
+
+        }
+        println("Total positions touched for rope size ${rope2.size}: ${tailPositions2.size}")
     }
 
-    data class Point(val x : Int, val y : Int) {
-        fun up(): Point = Point(this.x, this.y+1)
-        fun down(): Point = Point(this.x, this.y-1)
-        fun left(): Point = Point(this.x-1, this.y)
-        fun right(): Point = Point(this.x+1, this.y)
-        fun follow(headPosition: Point) : Point {
+    data class Rope(val size : Int) {
+
+        private val knots : MutableList<Knot> = (0 until size).map { Knot(0,0) }.toMutableList()
+
+        fun move(direction : Char) {
+            knots[0] = when(direction) {
+                'U' -> knots.first().up()
+                'D' -> knots.first().down()
+                'R' -> knots.first().right()
+                'L' -> knots.first().left()
+                else -> throw IllegalStateException("Unknown move")
+            }
+            (1 until knots.size).forEach { knotPosition ->
+                knots[knotPosition] = knots[knotPosition].follow(knots[knotPosition-1])
+            }
+        }
+
+        fun tail() = knots.last()
+
+    }
+
+    data class Knot(val x : Int, val y : Int) {
+        fun up(): Knot = Knot(this.x, this.y+1)
+        fun down(): Knot = Knot(this.x, this.y-1)
+        fun left(): Knot = Knot(this.x-1, this.y)
+        fun right(): Knot = Knot(this.x+1, this.y)
+        fun follow(headPosition: Knot) : Knot {
 
             // follow right
             if (this.x-headPosition.x < -1 && this.y == headPosition.y) {
@@ -515,7 +539,7 @@ class AOC {
             if (((this.y-headPosition.y).absoluteValue + (this.x-headPosition.x).absoluteValue) > 2) {
                 val y = if (this.y < headPosition.y) this.y+1 else this.y - 1
                 val x = if (this.x < headPosition.x) this.x+1 else this.x - 1
-                return Point(x,y)
+                return Knot(x,y)
             }
             return this
         }
