@@ -1,4 +1,5 @@
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import kotlin.math.absoluteValue
 
@@ -10,9 +11,9 @@ fun main() {
 //    AOC().exercise05()
 //    AOC().exercise06()
 //    AOC().exercise07()
-    AOC().exercise08()
+//    AOC().exercise08()
 //    AOC().exercise09()
-
+    AOC().exercise10()
 }
 
 class AOC {
@@ -379,12 +380,13 @@ class AOC {
         val result2 = forrest.maxScenicScore()
         println("Max scenic score : $result2")
     }
-    data class Forrest(val data : List<List<Int>>) {
+
+    data class Forrest(val data: List<List<Int>>) {
         private fun row(x: Int): List<Int> = data[x]
 
         private fun col(y: Int): List<Int> = data.map { it[y] }
 
-        private fun size() : Int {
+        private fun size(): Int {
             assert(data.size == data[0].size)
             return data.size
         }
@@ -393,12 +395,12 @@ class AOC {
         fun findVisibleTrees(): Set<Pair<Int, Int>> {
             return (0 until size()).flatMap { x ->
                 (0 until size()).map { y ->
-                    Pair(x,y)
+                    Pair(x, y)
                 }.filter { isVisible(it.first, it.second) }
             }.toSet()
         }
 
-        private fun isVisible(x : Int, y: Int) : Boolean {
+        private fun isVisible(x: Int, y: Int): Boolean {
 
             val treeSize = data[x][y]
 
@@ -406,22 +408,22 @@ class AOC {
                 true
             } else {
                 isVisible(treeSize, row(x).subList(0, y)) ||
-                isVisible(treeSize, row(x).subList(y+1, size())) ||
-                isVisible(treeSize, col(y).subList(0, x)) ||
-                isVisible(treeSize, col(y).subList(x+1, size()))
+                        isVisible(treeSize, row(x).subList(y + 1, size())) ||
+                        isVisible(treeSize, col(y).subList(0, x)) ||
+                        isVisible(treeSize, col(y).subList(x + 1, size()))
             }
         }
 
-        fun maxScenicScore() : Int {
+        fun maxScenicScore(): Int {
             return (0 until size()).flatMap { x ->
                 (0 until size()).map { y ->
-                    scenicScore(x,y)
+                    scenicScore(x, y)
                 }
             }.maxOrNull()!!
         }
 
-        private fun scenicScore(x : Int, y: Int) : Int {
-            val treeSize =data[x][y]
+        private fun scenicScore(x: Int, y: Int): Int {
+            val treeSize = data[x][y]
 
             val treesUp = col(y).subList(0, x).reversed()
 //            println("Up $treesUp ${scenicScore(treeSize, treesUp)}")
@@ -429,18 +431,21 @@ class AOC {
             val treesLeft = row(x).subList(0, y).reversed()
 //            println("Left $treesLeft ${scenicScore(treeSize, treesLeft)}")
 
-            val treesRight = row(x).subList(y+1, size())
+            val treesRight = row(x).subList(y + 1, size())
 //            println("Right $treesRight ${scenicScore(treeSize, treesRight)}")
 
-            val treesDown = col(y).subList(x+1, size())
+            val treesDown = col(y).subList(x + 1, size())
 //            println("Down $treesDown ${scenicScore(treeSize, treesDown)}")
 
-            return scenicScore(treeSize, treesUp) * scenicScore(treeSize, treesLeft) *scenicScore(treeSize, treesRight) *  scenicScore(treeSize, treesDown)
+            return scenicScore(treeSize, treesUp) * scenicScore(treeSize, treesLeft) * scenicScore(
+                treeSize,
+                treesRight
+            ) * scenicScore(treeSize, treesDown)
         }
 
 
-        private fun scenicScore(treeSize: Int, trees : List<Int>) : Int {
-            var viewableTreeCount : Int = 0
+        private fun scenicScore(treeSize: Int, trees: List<Int>): Int {
+            var viewableTreeCount: Int = 0
             trees.forEach { tree ->
                 if (tree < treeSize) {
                     viewableTreeCount++
@@ -452,15 +457,14 @@ class AOC {
             return viewableTreeCount
         }
 
-        private fun isVisible(treeSize : Int, trees: List<Int>) = trees.maxOrNull()!! < treeSize
+        private fun isVisible(treeSize: Int, trees: List<Int>) = trees.maxOrNull()!! < treeSize
 
         private fun isBorder(x: Int, y: Int) = (x == 0 || x == data.size - 1 || y == 0 || y == data.size - 1)
 
     }
 
 
-
-    private fun printGrid(forrest : Forrest) {
+    private fun printGrid(forrest: Forrest) {
         forrest.data.forEach { row ->
             row.forEach { col ->
                 print("$col ")
@@ -472,11 +476,10 @@ class AOC {
     fun exercise09() {
 
 
-
         val moves = readInputFile("/09/input.txt")
             .readLines()
             .map { it.split(" ") }
-            .map { Instruction(it[0][0], it[1].toInt())}
+            .map { Instruction(it[0][0], it[1].toInt()) }
 
 
         val rope = Rope(2)
@@ -489,7 +492,7 @@ class AOC {
         println("Total positions touched for rope size ${rope2.size}: ${tailPositions2}")
     }
 
-    private fun countTailPositions(rope : Rope, moves : List<Instruction>) : Int {
+    private fun countTailPositions(rope: Rope, moves: List<Instruction>): Int {
         return moves.flatMap { move ->
             (0 until move.steps).map { _ ->
                 rope.move(move.direction)
@@ -498,12 +501,12 @@ class AOC {
         }.distinct().size
     }
 
-    data class Rope(val size : Int) {
+    data class Rope(val size: Int) {
 
-        private val knots : MutableList<Knot> = (0 until size).map { Knot(0,0) }.toMutableList()
+        private val knots: MutableList<Knot> = (0 until size).map { Knot(0, 0) }.toMutableList()
 
-        fun move(direction : Char) {
-            knots[0] = when(direction) {
+        fun move(direction: Char) {
+            knots[0] = when (direction) {
                 'U' -> knots.first().up()
                 'D' -> knots.first().down()
                 'R' -> knots.first().right()
@@ -511,7 +514,7 @@ class AOC {
                 else -> throw IllegalStateException("Unknown move")
             }
             (1 until knots.size).forEach { knotPosition ->
-                knots[knotPosition] = knots[knotPosition].follow(knots[knotPosition-1])
+                knots[knotPosition] = knots[knotPosition].follow(knots[knotPosition - 1])
             }
         }
 
@@ -519,37 +522,37 @@ class AOC {
 
     }
 
-    data class Knot(val x : Int, val y : Int) {
-        fun up(): Knot = Knot(this.x, this.y+1)
-        fun down(): Knot = Knot(this.x, this.y-1)
-        fun left(): Knot = Knot(this.x-1, this.y)
-        fun right(): Knot = Knot(this.x+1, this.y)
-        fun follow(headPosition: Knot) : Knot {
+    data class Knot(val x: Int, val y: Int) {
+        fun up(): Knot = Knot(this.x, this.y + 1)
+        fun down(): Knot = Knot(this.x, this.y - 1)
+        fun left(): Knot = Knot(this.x - 1, this.y)
+        fun right(): Knot = Knot(this.x + 1, this.y)
+        fun follow(headPosition: Knot): Knot {
 
             // follow right
-            if (this.x-headPosition.x < -1 && this.y == headPosition.y) {
+            if (this.x - headPosition.x < -1 && this.y == headPosition.y) {
                 return this.right()
             }
 
             // follow left
-            if (this.x-headPosition.x > 1 && this.y == headPosition.y) {
+            if (this.x - headPosition.x > 1 && this.y == headPosition.y) {
                 return this.left()
             }
 
             // follow up
-            if (this.y-headPosition.y < -1 && this.x == headPosition.x) {
+            if (this.y - headPosition.y < -1 && this.x == headPosition.x) {
                 return this.up()
             }
 
             // follow down
-            if (this.y-headPosition.y > 1 && this.x == headPosition.x) {
+            if (this.y - headPosition.y > 1 && this.x == headPosition.x) {
                 return this.down()
             }
 
-            if (((this.y-headPosition.y).absoluteValue + (this.x-headPosition.x).absoluteValue) > 2) {
-                val y = if (this.y < headPosition.y) this.y+1 else this.y - 1
-                val x = if (this.x < headPosition.x) this.x+1 else this.x - 1
-                return Knot(x,y)
+            if (((this.y - headPosition.y).absoluteValue + (this.x - headPosition.x).absoluteValue) > 2) {
+                val y = if (this.y < headPosition.y) this.y + 1 else this.y - 1
+                val x = if (this.x < headPosition.x) this.x + 1 else this.x - 1
+                return Knot(x, y)
             }
             return this
         }
@@ -557,8 +560,36 @@ class AOC {
     }
 
 
+    data class Instruction(val direction: Char, val steps: Int)
 
-    data class Instruction(val direction:  Char, val steps: Int) 
+
+    fun exercise10() {
+        var cycleCount = 0
+        var register = 1
+        val cycles: MutableList<Int> = mutableListOf()
+        readInputFile("/10/input.txt").readLines().map { instruction ->
+            if (instruction == "noop") {
+                cycleCount += 1
+                cycles.add(register)
+            } else if (instruction.startsWith("addx")) {
+                cycleCount += 2
+                cycles.add(register)
+                cycles.add(register)
+                register += instruction.split(" ")[1].toInt()
+            } else {
+                throw IllegalArgumentException("Unkown instruction: $instruction")
+            }
+        }
+        // Add last cycle
+        cycles.add(register)
+        
+        val result = cycles.mapIndexed { index, value -> Pair(index+1, value) }
+            .filter { it.first == 20 || (it.first-20)%40 == 0 }
+            .sumOf { it.first * it.second }
+
+        println("Sum of signal strengths: $result")
+
+    }
 
 
     private fun readInputFile(inputFile: String): File {
