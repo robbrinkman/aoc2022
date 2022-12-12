@@ -1,6 +1,7 @@
 import java.io.File
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
+import java.util.concurrent.CyclicBarrier
 import kotlin.math.absoluteValue
 
 fun main() {
@@ -13,7 +14,8 @@ fun main() {
 //    AOC().exercise07()
 //    AOC().exercise08()
 //    AOC().exercise09()
-    AOC().exercise10()
+//    AOC().exercise10()
+    AOC().exercise11()
 }
 
 class AOC {
@@ -569,11 +571,12 @@ class AOC {
         val cycles: MutableList<Int> = mutableListOf()
         readInputFile("/10/input.txt").readLines().map { instruction ->
             if (instruction == "noop") {
-                cycleCount += 1
+                cycleCount++
                 cycles.add(register)
             } else if (instruction.startsWith("addx")) {
-                cycleCount += 2
+                cycleCount++
                 cycles.add(register)
+                cycleCount++
                 cycles.add(register)
                 register += instruction.split(" ")[1].toInt()
             } else {
@@ -582,13 +585,191 @@ class AOC {
         }
         // Add last cycle
         cycles.add(register)
-        
-        val result = cycles.mapIndexed { index, value -> Pair(index+1, value) }
-            .filter { it.first == 20 || (it.first-20)%40 == 0 }
+
+        val result = cycles.mapIndexed { index, value -> Pair(index + 1, value) }
+            .filter { it.first == 20 || (it.first - 20) % 40 == 0 }
             .sumOf { it.first * it.second }
 
         println("Sum of signal strengths: $result")
 
+        cycles.forEachIndexed { cycleCount, value ->
+            val sprite = value - 1..(value + 1)
+            println("$sprite ${cycleCount} $value")
+        }
+
+
+    }
+
+    private fun drawPixel(cycleCount: Int, register: Int) {
+        val sprite = (cycleCount)..(cycleCount + 2)
+        if (sprite.contains(register)) {
+            print("#")
+        } else {
+            print(".")
+        }
+        if (cycleCount % 40 == 0) {
+            println("")
+        }
+
+    }
+
+
+    fun exercise11() {
+        var number: Int? = null
+        var items: MutableList<Int>? = null
+        var operation: Calculation? = null
+        var test: Int? = null
+        var trueTo: Int? = null
+
+        var numberRegex = "^Monkey (\\d+):$".toRegex()
+        var itemRegex = "^  Starting items: (.*)$".toRegex()
+        var operationRegex = "^  Operation: new = old (.) (.+)$".toRegex()
+        var testRegex = "^  Test: (.*) by (\\d+)$".toRegex()
+        var throwRegex = "^    If (.*): throw to monkey (\\d+)$".toRegex()
+
+        val monkeys: MutableList<Monkey> = mutableListOf()
+        readInputFile("/11/input.txt").readLines().forEach { line ->
+            when {
+                numberRegex.matches(line) -> {
+                    number = numberRegex.find(line)!!.groups[1]!!.value.toInt()
+                }
+
+                itemRegex.matches(line) -> {
+                    items = itemRegex.find(line)!!.groups[1]!!.value.split(",").map { it.trim().toInt() }.toMutableList()
+                }
+
+                operationRegex.matches(line) -> {
+                    val groups = operationRegex.find(line)!!.groups
+                    val op = groups[1]!!.value
+                    val value = groups[2]!!.value
+
+                    operation = Calculation(Operator.fromString(op), value)
+                }
+
+                testRegex.matches(line) -> {
+                    val groups = testRegex.find(line)!!.groups
+                    val op = groups[1]!!.value
+                    val value = groups[2]!!.value.toInt()
+
+                    assert(op == "divisible")
+
+                    test = value
+                }
+
+                throwRegex.matches(line) -> {
+                    val groups = throwRegex.find(line)!!.groups
+                    val bool = groups[1]!!.value.toBooleanStrict()
+                    val value = groups[2]!!.value.toInt()
+
+                    if (bool) {
+                        trueTo = value
+                    } else {
+                        // Use null to make sure we have everything
+                        monkeys.add(Monkey(number!!, items!!, operation!!, test!!, Action(trueTo!!, value!!)))
+
+                        number = null
+                        items = null
+                        operation = null
+                        test = null
+                        trueTo = null
+                    }
+                }
+
+                line == "" -> {
+                    // empty line
+                }
+
+                else -> {
+                    throw IllegalArgumentException("Unknown line")
+                }
+            }
+        }
+
+        val inspectCount= monkeys.associateBy( { it.number }, { 0 }).toMutableMap()
+
+
+        val sumOfItems =  monkeys.sumOf { it.items.size }
+
+        println("Start")
+        monkeys.forEach { monkey ->
+            println("Monkey ${monkey.number}, items: ${monkey.items}")
+        }
+
+        (1..20).forEach { round ->
+
+            monkeys.forEach { monkey ->
+
+                // Copy to prevent concurrent modification
+                val items = monkey.items.toList()
+                monkey.items.clear()
+
+                items.forEach() { item ->
+                    inspectCount[monkey.number] = inspectCount[monkey.number]!!+1
+
+                    val worryLevel = (monkey.operation.execute(item) / 3).toInt()
+
+                    val testValue = (worryLevel % monkey.test) == 0
+                    val toMonkey = if (testValue) monkey.action.trueTo else monkey.action.falseTo
+//                    println("\t\t WorryLevel: $worryLevel, testValue: $testValue, toMonkey: $toMonkey")
+
+                    assert (monkey.number != toMonkey)
+                    monkeys.first { it.number == toMonkey }.items.add(worryLevel)
+
+
+                }
+             }
+            println("Round: $round")
+            monkeys.forEach { monkey ->
+                println("Monkey ${monkey.number}, items: ${monkey.items}")
+            }
+            if(sumOfItems !=  monkeys.sumOf { it.items.size }) {
+                throw IllegalStateException("Monkey items are gone")
+            }
+        }
+        println(inspectCount)
+        val topMonkeys = inspectCount.values.sorted().reversed().take(2)
+        println("Score: ${topMonkeys[0]*topMonkeys[1]}")
+    }
+
+    data class Monkey(
+        val number: Int,
+        val items: MutableList<Int>,
+        val operation: Calculation,
+        val test: Int,
+        val action: Action
+    )
+
+    data class Calculation(val operator: Operator, val value: String) {
+        fun execute(item: Int): Int {
+            val currentValue = if (value == "old") item else value.toInt()
+            return when (operator) {
+                Operator.PLUS -> item + currentValue
+                Operator.DIVIDE -> item / currentValue
+                Operator.MULTIPLY -> item * currentValue
+                Operator.MIN -> item - currentValue
+            }
+        }
+    }
+
+    data class Action(val trueTo: Int, val falseTo: Int)
+
+    enum class Operator(val sign: Char) {
+        PLUS('+'),
+        MIN('-'),
+        DIVIDE('/'),
+        MULTIPLY('*');
+
+        companion object {
+            fun fromString(op: String): Operator {
+                return when (op) {
+                    "+" -> PLUS
+                    "-" -> MIN
+                    "/" -> DIVIDE
+                    "*" -> MULTIPLY
+                    else -> throw IllegalArgumentException("Unknown operator: $op")
+                }
+            }
+        }
     }
 
 
